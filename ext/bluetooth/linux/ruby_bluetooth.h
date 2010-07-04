@@ -7,6 +7,12 @@
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
+#include <ruby.h>
+#include <rubyio.h>
+#include <rubysig.h>
+#include <util.h>
+#include <arpa/inet.h>
+#include <errno.h>
 
 // Prototype for the initialization method - Ruby calls this, not you
 void Init_ruby_bluetooth();
@@ -28,8 +34,6 @@ struct bluetooth_service_struct
 };
 
 static VALUE bt_device_new(VALUE self, VALUE name, VALUE addr);
-
-static VALUE bt_devices_scan(VALUE self);
 
 static int bt_ruby_socket(int domain, int type, int proto);
 

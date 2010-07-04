@@ -1,10 +1,5 @@
 // Include the Ruby headers and goodies
-#include <ruby.h>
-#include <rubyio.h>
-#include <rubysig.h>
-#include <util.h>
 #include "ruby_bluetooth.h"
-#include <arpa/inet.h>
 
 VALUE bt_module;
 VALUE bt_devices_class;
@@ -15,13 +10,64 @@ VALUE bt_service_class;
 VALUE bt_services_class;
 VALUE bt_cBluetoothDevice;
 
+/* Scan local network for visible remote devices */
+static VALUE bt_devices_scan(VALUE klass)
+{
+    /* looks like this code came from here:
+     * http://people.csail.mit.edu/albert/bluez-intro/c404.html
+     */
+    inquiry_info *ii = NULL;
+    int max_rsp, num_rsp;
+    int dev_id, sock, len, flags;
+    int i;
+
+    dev_id = hci_get_route(NULL);
+    sock = hci_open_dev( dev_id );
+    if (dev_id < 0 || sock < 0)
+    {
+      rb_raise(rb_eIOError, "error opening socket: %s", strerror(errno));
+    }
+
+    len  = 8;
+    max_rsp = 255;
+    flags = IREQ_CACHE_FLUSH;
+    ii = (inquiry_info*)malloc(max_rsp * sizeof(inquiry_info));
+
+    num_rsp = hci_inquiry(dev_id, len, max_rsp, NULL, &ii, flags);
+    if( num_rsp < 0 )
+        rb_raise(rb_eIOError, "hci_inquiry");
+
+    VALUE devices_array = rb_ary_new();
+
+    // Iterate over every device found and add it to result array
+    for (i = 0; i < num_rsp; i++)
+    {
+        char addr[19] = { 0 };
+        char name[248] = { 0 };
+
+        ba2str(&(ii+i)->bdaddr, addr);
+        memset(name, 0, sizeof(name));
+        if (hci_read_remote_name(sock, &(ii+i)->bdaddr, sizeof(name),
+                                 name, 0) < 0)
+            strcpy(name, "(unknown)");
+
+        VALUE bt_dev = rb_funcall(bt_cBluetoothDevice, rb_intern("new"), 2,
+                rb_str_new2(name), rb_str_new2(addr));
+
+        rb_ary_push(devices_array, bt_dev);
+    }
+
+    free( ii );
+    close( sock );
+    return devices_array;
+}
+
 // The initialization method for this module
 void Init_bluetooth()
 {
     bt_module = rb_define_module("Bluetooth");
 
-    rb_define_singleton_method(bt_devices_class, "scan", bt_devices_scan, 0);
-    rb_undef_method(bt_devices_class, "initialize");
+    rb_define_singleton_method(bt_module, "scan", bt_devices_scan, 0);
 
     bt_socket_class = rb_define_class_under(bt_module, "BluetoothSocket", rb_cIO);
     rb_define_method(bt_socket_class, "inspect", bt_socket_inspect, 0);
@@ -55,7 +101,7 @@ void Init_bluetooth()
 
     rb_define_method(bt_service_class, "registered?", bt_service_registered, 0);
 
-    bt_cBluetoothDevice = rb_const_get(mBluetooth, rb_intern("Device"));
+    bt_cBluetoothDevice = rb_const_get(bt_module, rb_intern("Device"));
 }
 
 static VALUE bt_socket_accept(VALUE self) {
@@ -370,55 +416,6 @@ static VALUE bt_l2cap_socket_init(int argc, VALUE *argv, VALUE sock)
     }
     VALUE ret = bt_init_sock(sock, fd);
     return ret;
-}
-
-// Scan local network for visible remote devices
-static VALUE bt_devices_scan(VALUE self)
-{
-    inquiry_info *ii = NULL;
-    int max_rsp, num_rsp;
-    int dev_id, sock, len, flags;
-    int i;
-
-    dev_id = hci_get_route(NULL);
-    sock = hci_open_dev( dev_id );
-    if (dev_id < 0 || sock < 0)
-    {
-        rb_raise (rb_eIOError, "error opening socket");
-    }
-
-    len  = 8;
-    max_rsp = 255;
-    flags = IREQ_CACHE_FLUSH;
-    ii = (inquiry_info*)malloc(max_rsp * sizeof(inquiry_info));
-
-    num_rsp = hci_inquiry(dev_id, len, max_rsp, NULL, &ii, flags);
-    if( num_rsp < 0 )
-        rb_raise(rb_eIOError, "hci_inquiry");
-
-    VALUE devices_array = rb_ary_new();
-
-    // Iterate over every device found and add it to result array
-    for (i = 0; i < num_rsp; i++)
-    {
-        char addr[19] = { 0 };
-        char name[248] = { 0 };
-
-        ba2str(&(ii+i)->bdaddr, addr);
-        memset(name, 0, sizeof(name));
-        if (hci_read_remote_name(sock, &(ii+i)->bdaddr, sizeof(name),
-                                 name, 0) < 0)
-            strcpy(name, "(unknown)");
-
-        VALUE bt_dev = rb_funcall(bt_cBluetoothDevice, rb_intern("new"), 2,
-                rb_str_new(name), rb_str_new2(addr));
-
-        rb_ary_push(devices_array, bt_dev);
-    }
-
-    free( ii );
-    close( sock );
-    return devices_array;
 }
 
 static VALUE
