@@ -22,6 +22,8 @@ void Init_bluetooth() {
     rb_define_method(rbt_cBluetoothDevice, "pair", rbt_device_pair, 0);
     rb_define_method(rbt_cBluetoothDevice, "request_name",
             rbt_device_request_name, 0);
+    rb_define_method(rbt_cBluetoothDevice, "services",
+            rbt_device_services, 0);
     rb_define_method(rbt_cBluetoothDevice, "_rssi", rbt_device_rssi, 0);
 
     init_rbt_error();

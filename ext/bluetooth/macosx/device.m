@@ -175,6 +175,63 @@ VALUE rbt_device_rssi(VALUE self) {
     return rb_iv_get(self, "@rssi");
 }
 
+VALUE rbt_device_services(VALUE self) {
+    IOBluetoothSDPServiceRecord *service;
+    IOBluetoothDevice *device;
+    IOReturn status;
+    NSArray *service_records;
+    NSAutoreleasePool *pool;
+    NSEnumerator *enumerator;
+    SDPQueryResult *result;
+    VALUE name, services;
+    int i;
+
+    pool = [[NSAutoreleasePool alloc] init];
+
+    device = rbt_device_get(self);
+
+    service_records = [device getServices];
+
+    if (service_records == nil) {
+        result = [[SDPQueryResult alloc] init];
+        result.device = self;
+
+        [device performSDPQuery: result];
+
+        CFRunLoopRun();
+
+        status = (IOReturn)NUM2INT(rb_iv_get(self, "@sdp_query_error"));
+        rbt_check_status(status, pool);
+
+        service_records = [device getServices];
+    }
+
+    if (service_records == nil)
+        return Qnil;
+
+    services = rb_ary_new();
+
+    enumerator = [service_records objectEnumerator];
+
+    while (service = [enumerator nextObject]) {
+        VALUE name;
+        NSString *str = [service getServiceName];
+
+        if (str) {
+            name = rb_str_new2([str UTF8String]);
+        } else {
+            name = rb_str_new2("[unknown]");
+        }
+
+        rb_ary_push(services, name);
+    }
+
+    [pool release];
+
+
+    return services;
+}
+
 @implementation PairingDelegate
 
 - (VALUE) device {
@@ -227,4 +284,24 @@ VALUE rbt_device_rssi(VALUE self) {
 }
 
 @end
+
+@implementation SDPQueryResult
+
+- (VALUE) device {
+    return device;
+}
+
+- (void) setDevice: (VALUE)input {
+    device = input;
+}
+
+- (void) sdpQueryComplete: (IOBluetoothDevice*) bt_device
+                   status: (IOReturn) status {
+    CFRunLoopStop(CFRunLoopGetCurrent());
+
+    rb_iv_set(device, "@sdp_query_error", INT2NUM(status));
+}
+
+@end
+
 

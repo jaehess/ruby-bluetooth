@@ -19,6 +19,8 @@ VALUE rbt_device_pair(VALUE);
 VALUE rbt_device_request_name(VALUE);
 VALUE rbt_device_rssi(VALUE);
 
+VALUE rbt_device_services(VALUE);
+
 @interface BluetoothDeviceScanner : NSObject {
 	IOBluetoothDeviceInquiry *      _inquiry;
 	BOOL                            _busy;
@@ -28,6 +30,24 @@ VALUE rbt_device_rssi(VALUE);
 - (void) stopSearch;
 - (IOReturn) startSearch;
 - (VALUE) devices;
+@end
+
+@interface HCIDelegate : NSObject {
+    VALUE device;
+}
+
+- (VALUE) device;
+- (void) setDevice: (VALUE)input;
+
+- (void) controllerClassOfDeviceReverted: (id)sender;
+- (void) readLinkQualityForDeviceComplete: (id)controller
+                                   device: (IOBluetoothDevice*)bt_device
+                                     info: (BluetoothHCILinkQualityInfo*)info
+                                    error: (IOReturn)error;
+- (void) readRSSIForDeviceComplete: (id)controller
+                            device: (IOBluetoothDevice*)bt_device
+                              info: (BluetoothHCIRSSIInfo*)info
+                             error: (IOReturn)error;
 @end
 
 @interface PairingDelegate : NSObject {
@@ -49,21 +69,15 @@ VALUE rbt_device_rssi(VALUE);
                                  numericValue: (BluetoothNumericValue)numericValue;
 @end
 
-@interface HCIDelegate : NSObject {
+@interface SDPQueryResult : NSObject {
     VALUE device;
 }
 
 - (VALUE) device;
 - (void) setDevice: (VALUE)input;
 
-- (void) controllerClassOfDeviceReverted: (id)sender;
-- (void) readLinkQualityForDeviceComplete: (id)controller
-                                   device: (IOBluetoothDevice*)bt_device
-                                     info: (BluetoothHCILinkQualityInfo*)info
-                                    error: (IOReturn)error;
-- (void) readRSSIForDeviceComplete: (id)controller
-                            device: (IOBluetoothDevice*)bt_device
-                              info: (BluetoothHCIRSSIInfo*)info
-                             error: (IOReturn)error;
+- (void) sdpQueryComplete: (IOBluetoothDevice *)bt_device
+                   status: (IOReturn)status;
+
 @end
 
