@@ -1,6 +1,10 @@
 #import "ruby_bluetooth.h"
 
 #import <IOBluetooth/objc/IOBluetoothDevicePair.h>
+#import <IOBluetooth/objc/IOBluetoothSDPDataElement.h>
+#import <IOBluetooth/objc/IOBluetoothSDPServiceRecord.h>
+
+extern VALUE rbt_cBluetoothService;
 
 static IOBluetoothDevice *rbt_device_get(VALUE self) {
     BluetoothDeviceAddress address;
@@ -176,15 +180,12 @@ VALUE rbt_device_rssi(VALUE self) {
 }
 
 VALUE rbt_device_services(VALUE self) {
-    IOBluetoothSDPServiceRecord *service;
     IOBluetoothDevice *device;
     IOReturn status;
     NSArray *service_records;
     NSAutoreleasePool *pool;
-    NSEnumerator *enumerator;
     SDPQueryResult *result;
-    VALUE name, services;
-    int i;
+    VALUE services;
 
     pool = [[NSAutoreleasePool alloc] init];
 
@@ -211,11 +212,9 @@ VALUE rbt_device_services(VALUE self) {
 
     services = rb_ary_new();
 
-    enumerator = [service_records objectEnumerator];
-
-    while (service = [enumerator nextObject]) {
-        VALUE name;
-        NSString *str = [service getServiceName];
+    for (IOBluetoothSDPServiceRecord *service_record in service_records) {
+        VALUE args, attrs, name, service;
+        NSString *str = [service_record getServiceName];
 
         if (str) {
             name = rb_str_new2([str UTF8String]);
@@ -223,7 +222,58 @@ VALUE rbt_device_services(VALUE self) {
             name = rb_str_new2("[unknown]");
         }
 
-        rb_ary_push(services, name);
+        attrs = rb_hash_new();
+
+        for (id key in [service_record attributes]) {
+            VALUE attr;
+            VALUE attr_id = LONG2NUM([key longValue]);
+            IOBluetoothSDPDataElement *elem =
+                [[service_record attributes] objectForKey: key];
+
+            switch ([elem getTypeDescriptor]) {
+                case 0:
+                    attr = Qnil;
+                    break;
+                case 1:
+                    attr = ULONG2NUM([[elem getNumberValue] unsignedLongValue]);
+                    break;
+                case 2:
+                    attr = LONG2NUM([[elem getNumberValue] longValue]);
+                    break;
+                case 3: // UUID
+                    attr = rb_str_new((char *)[[elem getUUIDValue] bytes], 16);
+                    break;
+                case 4:
+                    attr = rb_str_new2([[elem getStringValue] UTF8String]);
+                    break;
+                case 5:
+                    attr = ([elem getNumberValue] == 0) ? Qfalse : Qtrue;
+                    break;
+                case 6:
+                    attr = ID2SYM(rb_intern("unhandled_sequence"));
+                    break;
+                case 7:
+                    attr = ID2SYM(rb_intern("unhandled_alternative"));
+                    break;
+                case 8:
+                    attr = rb_str_new2([[elem getStringValue] UTF8String]);
+                    attr = rb_funcall(rb_const_get(rb_cObject,
+                                rb_intern("URI")),
+                            rb_intern("parse"), 1, attr);
+                    break;
+                default:
+                    continue;
+            }
+
+            rb_hash_aset(attrs, attr_id, attr);
+        }
+
+        args = rb_ary_new3(2, name, attrs);
+
+        service = rb_class_new_instance(2, RARRAY_PTR(args),
+                rbt_cBluetoothService);
+
+        rb_ary_push(services, service);
     }
 
     [pool release];

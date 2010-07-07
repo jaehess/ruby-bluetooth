@@ -13,7 +13,8 @@ module Bluetooth
     end
   end
 
-  autoload :Device, 'bluetooth/device'
+  autoload :Device,  'bluetooth/device'
+  autoload :Service, 'bluetooth/service'
 
 end
 

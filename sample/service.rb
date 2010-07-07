@@ -7,6 +7,6 @@ device = Bluetooth::Device.new address
 puts "#{device.name} services:"
 
 device.services.each do |service|
-  puts "\t#{service}"
+  puts "\t#{service.inspect}"
 end
 
