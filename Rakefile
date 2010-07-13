@@ -5,7 +5,6 @@ require 'hoe'
 hoe = Hoe.spec 'bluetooth' do
   developer 'Eric Hodel', 'drbrain@segment7.net'
   developer 'Jeremie Castagna', ''
-  developer 'Esteve Fernandez', ''
 
   extra_dev_deps << ['rake-compiler', '~> 0.6']
 
