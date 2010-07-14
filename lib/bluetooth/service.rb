@@ -37,7 +37,7 @@ class Bluetooth::Service
     id2attr = ATTRIBUTES.invert
 
     attrs = @attributes.sort.map do |attr_id, value|
-      [(id2attr[attr_id] || attr_id), value].join ': '
+      [(id2attr[attr_id] || ("0x%04x" % attr_id)), value.inspect].join ': '
     end.join ', '
 
     "#<%s:0x%x %s - %s>" % [self.class, object_id, name, attrs]

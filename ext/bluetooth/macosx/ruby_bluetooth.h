@@ -4,14 +4,14 @@
 #import <IOBluetooth/objc/IOBluetoothDevice.h>
 #import <IOBluetooth/objc/IOBluetoothDeviceInquiry.h>
 #import <IOBluetooth/objc/IOBluetoothHostController.h>
+#import <IOBluetooth/objc/IOBluetoothSDPDataElement.h>
+#import <IOBluetooth/objc/IOBluetoothSDPServiceRecord.h>
 
 #import <ruby.h>
 
 void init_rbt_error();
 
 void rbt_check_status(IOReturn status, NSAutoreleasePool *pool);
-
-VALUE rbt_scan(VALUE);
 
 VALUE rbt_device_link_quality(VALUE);
 VALUE rbt_device_open_connection(VALUE);
@@ -20,6 +20,11 @@ VALUE rbt_device_request_name(VALUE);
 VALUE rbt_device_rssi(VALUE);
 
 VALUE rbt_device_services(VALUE);
+
+VALUE rbt_scan(VALUE);
+
+VALUE rbt_service_data_element_to_ruby(IOBluetoothSDPDataElement *);
+VALUE rbt_service_data_elements_to_ruby(VALUE, NSArray *);
 
 @interface BluetoothDeviceScanner : NSObject {
 	IOBluetoothDeviceInquiry *      _inquiry;

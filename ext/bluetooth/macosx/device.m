@@ -1,8 +1,6 @@
 #import "ruby_bluetooth.h"
 
 #import <IOBluetooth/objc/IOBluetoothDevicePair.h>
-#import <IOBluetooth/objc/IOBluetoothSDPDataElement.h>
-#import <IOBluetooth/objc/IOBluetoothSDPServiceRecord.h>
 
 extern VALUE rbt_cBluetoothService;
 
@@ -225,45 +223,11 @@ VALUE rbt_device_services(VALUE self) {
         attrs = rb_hash_new();
 
         for (id key in [service_record attributes]) {
-            VALUE attr;
             VALUE attr_id = LONG2NUM([key longValue]);
             IOBluetoothSDPDataElement *elem =
                 [[service_record attributes] objectForKey: key];
 
-            switch ([elem getTypeDescriptor]) {
-                case 0:
-                    attr = Qnil;
-                    break;
-                case 1:
-                    attr = ULONG2NUM([[elem getNumberValue] unsignedLongValue]);
-                    break;
-                case 2:
-                    attr = LONG2NUM([[elem getNumberValue] longValue]);
-                    break;
-                case 3: // UUID
-                    attr = rb_str_new((char *)[[elem getUUIDValue] bytes], 16);
-                    break;
-                case 4:
-                    attr = rb_str_new2([[elem getStringValue] UTF8String]);
-                    break;
-                case 5:
-                    attr = ([elem getNumberValue] == 0) ? Qfalse : Qtrue;
-                    break;
-                case 6:
-                    attr = ID2SYM(rb_intern("unhandled_sequence"));
-                    break;
-                case 7:
-                    attr = ID2SYM(rb_intern("unhandled_alternative"));
-                    break;
-                case 8:
-                    attr = rb_str_new2([[elem getStringValue] UTF8String]);
-                    attr = rb_funcall(rb_const_get(rb_cObject,
-                                rb_intern("URI")),
-                            rb_intern("parse"), 1, attr);
-                    break;
-                default:
-                    continue;
-            }
+            VALUE attr = rbt_service_data_element_to_ruby(elem);
 
             rb_hash_aset(attrs, attr_id, attr);
         }
