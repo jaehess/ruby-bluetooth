@@ -1,9 +1,12 @@
 #import "ruby_bluetooth.h"
 
+extern VALUE rbt_cBluetoothServiceAlternative;
+extern VALUE rbt_cBluetoothServiceSequence;
 extern VALUE rbt_cBluetoothServiceUUID;
 
 VALUE rbt_service_data_element_to_ruby(IOBluetoothSDPDataElement *elem) {
-    VALUE attr;
+    VALUE attr, tmp;
+    IOBluetoothSDPUUID *uuid = nil;
 
     switch ([elem getTypeDescriptor]) {
         case 0: // Nil
@@ -16,7 +19,9 @@ VALUE rbt_service_data_element_to_ruby(IOBluetoothSDPDataElement *elem) {
             attr = LONG2NUM([[elem getNumberValue] longValue]);
             break;
         case 3: // UUID
-            attr = rb_str_new((char *)[[elem getUUIDValue] bytes], 16);
+            uuid = [elem getUUIDValue];
+            attr = rb_str_new((char *)[uuid bytes], [uuid length]);
+
             attr = rb_class_new_instance(1, &attr, rbt_cBluetoothServiceUUID);
             break;
         case 4: // String
@@ -27,12 +32,12 @@ VALUE rbt_service_data_element_to_ruby(IOBluetoothSDPDataElement *elem) {
             break;
         case 6: // Data element sequence
             attr = rbt_service_data_elements_to_ruby(
-                    ID2SYM(rb_intern("sequence")),
+                    rbt_cBluetoothServiceSequence,
                     [elem getArrayValue]);
             break;
         case 7: // Data element alternative
             attr = rbt_service_data_elements_to_ruby(
-                    ID2SYM(rb_intern("alternative")),
+                    rbt_cBluetoothServiceAlternative,
                     [elem getArrayValue]);
             break;
         case 8: // URL
@@ -48,14 +53,13 @@ VALUE rbt_service_data_element_to_ruby(IOBluetoothSDPDataElement *elem) {
     return attr;
 }
 
-VALUE rbt_service_data_elements_to_ruby(VALUE type, NSArray *data_elements) {
+VALUE rbt_service_data_elements_to_ruby(VALUE klass, NSArray *data_elements) {
     VALUE attrs = rb_ary_new();
 
     for (IOBluetoothSDPDataElement *element in data_elements) {
         rb_ary_push(attrs, rbt_service_data_element_to_ruby(element));
     }
-
-    rb_iv_set(attrs, "@type", type); // HACK make a real object
+    attrs = rb_class_new_instance(1, &attrs, klass);
 
     return attrs;
 }
