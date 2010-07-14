@@ -6,6 +6,7 @@ VALUE rbt_cBluetoothDevice = Qnil;
 VALUE rbt_cBluetoothERRORS = Qnil;
 VALUE rbt_cBluetoothError = Qnil;
 VALUE rbt_cBluetoothService = Qnil;
+VALUE rbt_cBluetoothServiceUUID = Qnil;
 
 void Init_bluetooth() {
     rbt_mBluetooth = rb_define_module("Bluetooth");
@@ -28,6 +29,8 @@ void Init_bluetooth() {
     rb_define_method(rbt_cBluetoothDevice, "_rssi", rbt_device_rssi, 0);
 
     rbt_cBluetoothService = rb_const_get(rbt_mBluetooth, rb_intern("Service"));
+    rbt_cBluetoothServiceUUID = rb_const_get(rbt_cBluetoothService,
+            rb_intern("UUID"));
 
     init_rbt_error();
 }

@@ -1,5 +1,7 @@
 #import "ruby_bluetooth.h"
 
+extern VALUE rbt_cBluetoothServiceUUID;
+
 VALUE rbt_service_data_element_to_ruby(IOBluetoothSDPDataElement *elem) {
     VALUE attr;
 
@@ -15,6 +17,7 @@ VALUE rbt_service_data_element_to_ruby(IOBluetoothSDPDataElement *elem) {
             break;
         case 3: // UUID
             attr = rb_str_new((char *)[[elem getUUIDValue] bytes], 16);
+            attr = rb_class_new_instance(1, &attr, rbt_cBluetoothServiceUUID);
             break;
         case 4: // String
             attr = rb_str_new2([[elem getStringValue] UTF8String]);

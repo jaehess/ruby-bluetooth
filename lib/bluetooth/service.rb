@@ -43,5 +43,7 @@ class Bluetooth::Service
     "#<%s:0x%x %s - %s>" % [self.class, object_id, name, attrs]
   end
 
+  autoload :UUID, 'bluetooth/service/uuid'
+
 end
 
