@@ -10,7 +10,7 @@ class Bluetooth::Service::UUID
     case uuid.length
     when 16 then
       a, b, c, d = uuid.unpack('NNNN')
-      a << 96 + b << 64 + c << 32 + d
+      (a << 96) + (b << 64) + (c << 32) + d
     when 4 then
       uuid.unpack('N').first
     when 2 then
