@@ -20,6 +20,7 @@ VALUE rbt_device_pair(VALUE);
 VALUE rbt_device_request_name(VALUE);
 VALUE rbt_device_rssi(VALUE);
 VALUE rbt_device_get_service(VALUE, VALUE);
+IOBluetoothSDPServiceRecord *rbt_device_get_service_record(VALUE, VALUE);
 
 VALUE rbt_device_services(VALUE);
 

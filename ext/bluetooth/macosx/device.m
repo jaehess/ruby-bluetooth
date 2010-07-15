@@ -28,13 +28,26 @@ static IOBluetoothDevice *rbt_device_get(VALUE self) {
 }
 
 VALUE rbt_device_get_service(VALUE self, VALUE uuid) {
-    IOBluetoothDevice *device;
     IOBluetoothSDPServiceRecord *service_record;
-    IOBluetoothSDPUUID *service_uuid;
     NSAutoreleasePool *pool;
     VALUE service = Qnil;
 
     pool = [[NSAutoreleasePool alloc] init];
+
+    service_record = rbt_device_get_service_record(self, uuid);
+
+    if (service_record != nil)
+        service = rbt_service_from_record(service_record);
+
+    [pool release];
+
+    return service;
+}
+
+IOBluetoothSDPServiceRecord *rbt_device_get_service_record(VALUE self,
+        VALUE uuid) {
+    IOBluetoothDevice *device;
+    IOBluetoothSDPUUID *service_uuid;
 
     uuid = rb_funcall(uuid, rb_intern("to_uuid_bytes"), 0);
 
@@ -44,14 +57,7 @@ VALUE rbt_device_get_service(VALUE self, VALUE uuid) {
 
     device = rbt_device_get(self);
 
-    service_record = [device getServiceRecordForUUID: service_uuid];
-
-    if (service_record != nil)
-        service = rbt_service_from_record(service_record);
-
-    [pool release];
-
-    return service;
+    return [device getServiceRecordForUUID: service_uuid];
 }
 
 VALUE rbt_device_link_quality(VALUE self) {
