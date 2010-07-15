@@ -27,6 +27,33 @@ static IOBluetoothDevice *rbt_device_get(VALUE self) {
     return device;
 }
 
+VALUE rbt_device_get_service(VALUE self, VALUE uuid) {
+    IOBluetoothDevice *device;
+    IOBluetoothSDPServiceRecord *service_record;
+    IOBluetoothSDPUUID *service_uuid;
+    NSAutoreleasePool *pool;
+    VALUE service = Qnil;
+
+    pool = [[NSAutoreleasePool alloc] init];
+
+    uuid = rb_funcall(uuid, rb_intern("to_uuid_bytes"), 0);
+
+    service_uuid = [IOBluetoothSDPUUID alloc];
+    [service_uuid initWithBytes: (void *)StringValuePtr(uuid)
+                         length: RSTRING_LEN(uuid)];
+
+    device = rbt_device_get(self);
+
+    service_record = [device getServiceRecordForUUID: service_uuid];
+
+    if (service_record != nil)
+        service = rbt_service_from_record(service_record);
+
+    [pool release];
+
+    return service;
+}
+
 VALUE rbt_device_link_quality(VALUE self) {
     HCIDelegate *delegate;
     IOBluetoothDevice *device;
@@ -211,37 +238,10 @@ VALUE rbt_device_services(VALUE self) {
     services = rb_ary_new();
 
     for (IOBluetoothSDPServiceRecord *service_record in service_records) {
-        VALUE args, attrs, name, service;
-        NSString *str = [service_record getServiceName];
-
-        if (str) {
-            name = rb_str_new2([str UTF8String]);
-        } else {
-            name = rb_str_new2("[unknown]");
-        }
-
-        attrs = rb_hash_new();
-
-        for (id key in [service_record attributes]) {
-            VALUE attr_id = LONG2NUM([key longValue]);
-            IOBluetoothSDPDataElement *elem =
-                [[service_record attributes] objectForKey: key];
-
-            VALUE attr = rbt_service_data_element_to_ruby(elem);
-
-            rb_hash_aset(attrs, attr_id, attr);
-        }
-
-        args = rb_ary_new3(2, name, attrs);
-
-        service = rb_class_new_instance(2, RARRAY_PTR(args),
-                rbt_cBluetoothService);
-
-        rb_ary_push(services, service);
+        rb_ary_push(services, rbt_service_from_record(service_record));
     }
 
     [pool release];
-
 
     return services;
 }

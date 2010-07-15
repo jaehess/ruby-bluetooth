@@ -2,6 +2,20 @@ class Bluetooth::Service::UUID
 
   attr_accessor :uuid
 
+  def self.from_integer value
+    value = Integer value unless Integer === value
+
+    value = if value < 0xFFFF then
+              [value].pack 'n'
+            elsif value < 0xFFFFFFFF then
+              [value].pack 'N'
+            else
+              raise NotImplementedError, "only UUID16 and UUID32 are supported"
+            end
+
+    new value
+  end
+
   def initialize uuid
     @uuid = uuid
   end
@@ -34,6 +48,8 @@ class Bluetooth::Service::UUID
   def inspect
     "u:#{self}"
   end
+
+  alias to_uuid_bytes uuid
 
 end
 
