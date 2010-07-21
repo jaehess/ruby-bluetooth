@@ -124,12 +124,14 @@ class Bluetooth::Service
     define_method name do @attributes[attr_id] end
   end
 
-  attr_reader :name
   attr_reader :attributes
+  attr_reader :device
+  attr_reader :name
 
-  def initialize name, attributes
+  def initialize name, attributes, device
     @name = name
     @attributes = attributes
+    @device = device
   end
 
   alias to_s name # :nodoc:

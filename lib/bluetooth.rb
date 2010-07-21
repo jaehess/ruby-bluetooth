@@ -13,8 +13,9 @@ module Bluetooth
     end
   end
 
-  autoload :Device,  'bluetooth/device'
-  autoload :Service, 'bluetooth/service'
+  autoload :Device,      'bluetooth/device'
+  autoload :OBEXSession, 'bluetooth/obex_session'
+  autoload :Service,     'bluetooth/service'
 
 end
 

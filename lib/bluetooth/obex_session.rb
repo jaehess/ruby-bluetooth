@@ -1,0 +1,3 @@
+class Bluetooth::OBEXSession
+end
+

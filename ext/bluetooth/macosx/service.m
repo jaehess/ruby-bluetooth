@@ -1,12 +1,13 @@
 #import "ruby_bluetooth.h"
 
+extern VALUE rbt_cBluetoothOBEXSession;
 extern VALUE rbt_cBluetoothService;
 extern VALUE rbt_cBluetoothServiceAlternative;
 extern VALUE rbt_cBluetoothServiceSequence;
 extern VALUE rbt_cBluetoothServiceUUID;
 
 VALUE rbt_service_data_element_to_ruby(IOBluetoothSDPDataElement *elem) {
-    VALUE attr, tmp;
+    VALUE attr;
     IOBluetoothSDPUUID *uuid = nil;
 
     switch ([elem getTypeDescriptor]) {
@@ -65,7 +66,7 @@ VALUE rbt_service_data_elements_to_ruby(VALUE klass, NSArray *data_elements) {
     return attrs;
 }
 
-VALUE rbt_service_from_record(IOBluetoothSDPServiceRecord *service_record) {
+VALUE rbt_service_from_record(VALUE device, IOBluetoothSDPServiceRecord *service_record) {
     VALUE args, attrs, name;
     NSString *str = [service_record getServiceName];
 
@@ -87,8 +88,71 @@ VALUE rbt_service_from_record(IOBluetoothSDPServiceRecord *service_record) {
         rb_hash_aset(attrs, attr_id, attr);
     }
 
-    args = rb_ary_new3(2, name, attrs);
+    args = rb_ary_new3(3, name, attrs, device);
 
-    return rb_class_new_instance(2, RARRAY_PTR(args), rbt_cBluetoothService);
+    return rb_class_new_instance(3, RARRAY_PTR(args), rbt_cBluetoothService);
+}
+
+static VALUE session_cleanup(VALUE data) {
+    IOBluetoothOBEXSession *obex_session;
+    NSAutoreleasePool *pool;
+    VALUE session;
+
+    session      = RARRAY_PTR(data)[0];
+    obex_session = (IOBluetoothOBEXSession *)RARRAY_PTR(data)[1];
+    pool         = (NSAutoreleasePool *)RARRAY_PTR(data)[2];
+
+    [obex_session release];
+    [pool release];
+
+    DATA_PTR(session) = NULL;
+
+    return Qnil;
+}
+
+VALUE rbt_service_obex_session(VALUE self) {
+    IOBluetoothOBEXSession *obex_session;
+    IOBluetoothSDPServiceRecord *service_record;
+    NSAutoreleasePool *pool;
+    VALUE device, session, uuid, uuids;
+
+    uuids = rb_funcall(self, rb_intern("service_class_id_list"), 0);
+    uuids = rb_ary_to_ary(uuids);
+
+    if (RARRAY_LEN(uuids) == 0)
+        rb_raise(rb_eRuntimeError, "not properly initialized?");
+
+    uuid = RARRAY_PTR(uuids)[0];
+
+    device = rb_funcall(self, rb_intern("device"), 0);
+
+    pool = [[NSAutoreleasePool alloc] init];
+
+    service_record = rbt_device_get_service_record(device, uuid);
+
+    obex_session = [IOBluetoothOBEXSession withSDPServiceRecord:
+        service_record];
+
+    [obex_session retain];
+
+    session = Data_Wrap_Struct(rbt_cBluetoothOBEXSession, NULL,
+            rbt_obex_session_free, obex_session);
+
+    if (rb_block_given_p()) {
+        VALUE data;
+
+        data = rb_ary_new2(2); // It's just a big truck!
+        RARRAY_PTR(data)[0] = session;
+        RARRAY_PTR(data)[1] = (VALUE)obex_session;
+        RARRAY_PTR(data)[2] = (VALUE)pool;
+
+        rb_ensure(rb_yield, session, session_cleanup, data);
+
+        return Qnil;
+    } else {
+        [pool release];
+
+        return session;
+    }
 }
 

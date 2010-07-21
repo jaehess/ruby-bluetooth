@@ -5,6 +5,7 @@ VALUE rbt_mBluetooth = Qnil;
 VALUE rbt_cBluetoothDevice = Qnil;
 VALUE rbt_cBluetoothERRORS = Qnil;
 VALUE rbt_cBluetoothError = Qnil;
+VALUE rbt_cBluetoothOBEXSession = Qnil;
 VALUE rbt_cBluetoothService = Qnil;
 VALUE rbt_cBluetoothServiceAlternative = Qnil;
 VALUE rbt_cBluetoothServiceSequence = Qnil;
@@ -33,7 +34,17 @@ void Init_bluetooth() {
             rbt_device_link_quality, 0);
     rb_define_method(rbt_cBluetoothDevice, "_rssi", rbt_device_rssi, 0);
 
+    rbt_cBluetoothOBEXSession = rb_const_get(rbt_mBluetooth,
+            rb_intern("OBEXSession"));
+
+    rb_define_method(rbt_cBluetoothOBEXSession, "open_transport",
+            rbt_obex_session_open_transport, 0);
+
     rbt_cBluetoothService = rb_const_get(rbt_mBluetooth, rb_intern("Service"));
+
+    rb_define_method(rbt_cBluetoothService, "obex_session",
+            rbt_service_obex_session, 0);
+
     rbt_cBluetoothServiceAlternative = rb_const_get(rbt_cBluetoothService,
             rb_intern("Alternative"));
     rbt_cBluetoothServiceSequence = rb_const_get(rbt_cBluetoothService,

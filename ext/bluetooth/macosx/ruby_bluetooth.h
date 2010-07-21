@@ -4,6 +4,7 @@
 #import <IOBluetooth/objc/IOBluetoothDevice.h>
 #import <IOBluetooth/objc/IOBluetoothDeviceInquiry.h>
 #import <IOBluetooth/objc/IOBluetoothHostController.h>
+#import <IOBluetooth/objc/IOBluetoothOBEXSession.h>
 #import <IOBluetooth/objc/IOBluetoothSDPDataElement.h>
 #import <IOBluetooth/objc/IOBluetoothSDPServiceRecord.h>
 #import <IOBluetooth/objc/IOBluetoothSDPUUID.h>
@@ -26,9 +27,12 @@ VALUE rbt_device_services(VALUE);
 
 VALUE rbt_scan(VALUE);
 
+void rbt_obex_session_free(IOBluetoothOBEXSession *);
+
 VALUE rbt_service_data_element_to_ruby(IOBluetoothSDPDataElement *);
 VALUE rbt_service_data_elements_to_ruby(VALUE, NSArray *);
-VALUE rbt_service_from_record(IOBluetoothSDPServiceRecord *);
+VALUE rbt_service_from_record(VALUE, IOBluetoothSDPServiceRecord *);
+VALUE rbt_service_obex_session(VALUE);
 
 @interface BluetoothDeviceScanner : NSObject {
 	IOBluetoothDeviceInquiry *      _inquiry;

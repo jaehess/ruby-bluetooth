@@ -37,7 +37,7 @@ VALUE rbt_device_get_service(VALUE self, VALUE uuid) {
     service_record = rbt_device_get_service_record(self, uuid);
 
     if (service_record != nil)
-        service = rbt_service_from_record(service_record);
+        service = rbt_service_from_record(self, service_record);
 
     [pool release];
 
@@ -244,7 +244,7 @@ VALUE rbt_device_services(VALUE self) {
     services = rb_ary_new();
 
     for (IOBluetoothSDPServiceRecord *service_record in service_records) {
-        rb_ary_push(services, rbt_service_from_record(service_record));
+        rb_ary_push(services, rbt_service_from_record(self, service_record));
     }
 
     [pool release];
