@@ -1,9 +1,10 @@
-/ext/bluetooth/Makefile
-/tmp
-/pkg
-/doc
-*.swp
 *.bundle
 *.dll
-*.so
 *.o
+*.so
+*.swp
+/doc
+/ext/bluetooth/Makefile
+/pkg
+/tmp
+TAGS
