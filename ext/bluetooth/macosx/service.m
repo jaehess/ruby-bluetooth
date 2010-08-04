@@ -103,6 +103,7 @@ static VALUE session_cleanup(VALUE data) {
     pool         = (NSAutoreleasePool *)RARRAY_PTR(data)[2];
 
     [obex_session release];
+    printf("%p\n", pool);
     [pool release];
 
     DATA_PTR(session) = NULL;

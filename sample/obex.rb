@@ -9,6 +9,7 @@ device = Bluetooth::Device.new address
 service = device.service uuid
 
 service.obex_session do |session|
+  session.open_transport
   p session
 end
 

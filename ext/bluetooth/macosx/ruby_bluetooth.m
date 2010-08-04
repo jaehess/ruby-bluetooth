@@ -5,6 +5,7 @@ VALUE rbt_mBluetooth = Qnil;
 VALUE rbt_cBluetoothDevice = Qnil;
 VALUE rbt_cBluetoothERRORS = Qnil;
 VALUE rbt_cBluetoothError = Qnil;
+VALUE rbt_cBluetoothOBEXError = Qnil;
 VALUE rbt_cBluetoothOBEXSession = Qnil;
 VALUE rbt_cBluetoothService = Qnil;
 VALUE rbt_cBluetoothServiceAlternative = Qnil;
@@ -14,7 +15,9 @@ VALUE rbt_cBluetoothServiceUUID = Qnil;
 void Init_bluetooth() {
     rbt_mBluetooth = rb_define_module("Bluetooth");
 
-    rbt_cBluetoothError  = rb_const_get(rbt_mBluetooth, rb_intern("Error"));
+    rbt_cBluetoothError = rb_const_get(rbt_mBluetooth, rb_intern("Error"));
+    rbt_cBluetoothOBEXError = rb_const_get(rbt_mBluetooth,
+            rb_intern("OBEXError"));
 
     rb_define_singleton_method(rbt_mBluetooth, "scan", rbt_scan, 0);
 
@@ -52,6 +55,7 @@ void Init_bluetooth() {
     rbt_cBluetoothServiceUUID = rb_const_get(rbt_cBluetoothService,
             rb_intern("UUID"));
 
-    init_rbt_error();
+    rbt_init_error();
+    rbt_init_obex_error();
 }
 

@@ -12,8 +12,10 @@
 #import <ruby.h>
 
 void init_rbt_error();
+void init_rbt_obex_error();
 
 void rbt_check_status(IOReturn status, NSAutoreleasePool *pool);
+void rbt_check_obex_status(OBEXError error, NSAutoreleasePool *pool);
 
 VALUE rbt_device_link_quality(VALUE);
 VALUE rbt_device_open_connection(VALUE);
@@ -62,6 +64,11 @@ VALUE rbt_service_obex_session(VALUE);
                             device: (IOBluetoothDevice*)bt_device
                               info: (BluetoothHCIRSSIInfo*)info
                              error: (IOReturn)error;
+@end
+
+@interface OBEXStatus : NSObject {}
+
+- (void) transportConnectionSelector: (id)refCon status:(OBEXError)status;
 @end
 
 @interface PairingDelegate : NSObject {

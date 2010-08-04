@@ -3,8 +3,10 @@
 
 extern VALUE rbt_mBluetooth;
 extern VALUE rbt_cBluetoothError;
+extern VALUE rbt_cBluetoothOBEXError;
 
 VALUE errors;
+VALUE obex_errors;
 
 void rbt_check_status(IOReturn status, NSAutoreleasePool *pool) {
     if (status != kIOReturnSuccess || status != noErr) {
@@ -14,16 +16,17 @@ void rbt_check_status(IOReturn status, NSAutoreleasePool *pool) {
     }
 }
 
-void add_error(IOReturn status, const char *name, const char *message) {
+static void add_error(IOReturn status, const char *name, const char *message) {
     VALUE klass;
     VALUE value;
 
-    klass = rb_define_class_under(rbt_mBluetooth, name, rbt_cBluetoothError);
+    klass = rb_define_class_under(rbt_cBluetoothError, name,
+            rbt_cBluetoothError);
     value = rb_ary_new3(2, klass, rb_str_new2(message));
     rb_hash_aset(errors, INT2NUM(status), value);
 }
 
-void init_rbt_error() {
+void rbt_init_error() {
     VALUE tmp;
 
     errors = rb_const_get(rbt_mBluetooth, rb_intern("ERRORS"));
@@ -265,5 +268,68 @@ void init_rbt_error() {
     add_error(kBluetoothHCIErrorSecureSimplePairingNotSupportedByHost,
             "SecureSimplePairingNotSupportedByHostError",
             "secure simple pairing not supported by host");
+}
+
+void rbt_check_obex_status(OBEXError error, NSAutoreleasePool *pool) {
+    if (error != kOBEXSuccess) {
+        [pool release];
+
+        rb_funcall(rbt_cBluetoothOBEXError, rb_intern("raise"), 1,
+                LONG2NUM(error));
+    }
+}
+
+static void add_obex_error(OBEXError error, const char *name,
+        const char *message) {
+    VALUE klass;
+    VALUE value;
+
+    klass = rb_define_class_under(rbt_cBluetoothOBEXError, name,
+            rbt_cBluetoothOBEXError);
+    value = rb_ary_new3(2, klass, rb_str_new2(message));
+    rb_hash_aset(obex_errors, LONG2NUM(error), value);
+}
+
+void rbt_init_obex_error() {
+    VALUE tmp;
+
+    obex_errors = rb_const_get(rbt_mBluetooth, rb_intern("OBEX_ERRORS"));
+
+    tmp = rb_ary_new3(2, rbt_cBluetoothOBEXError, rb_str_new2("general error"));
+    rb_hash_aset(errors, LONG2NUM(kOBEXGeneralError), tmp);
+
+    add_obex_error(kOBEXNoResourcesError, "NoResourcesError",
+            "an allocation failed");
+    add_obex_error(kOBEXUnsupportedError, "UnsupportedError",
+            "operation or item is not supported");
+    add_obex_error(kOBEXInternalError, "InternalError",
+            "a problem has occurred in our internal code");
+    add_obex_error(kOBEXBadArgumentError, "BadArgumentError",
+            "a bad argument was passed to an OBEX function");
+    add_obex_error(kOBEXTimeoutError, "TimeoutError",
+            "timeout error");
+    add_obex_error(kOBEXBadRequestError, "BadRequestError",
+            "bad request error");
+    add_obex_error(kOBEXCancelledError, "CancelledError",
+            "operation cancelled");
+    add_obex_error(kOBEXForbiddenError, "ForbiddenError",
+            "the operation was not allowed on remote device");
+    add_obex_error(kOBEXSessionBusyError, "SessionBusyError",
+            "session is busy with a command already");
+    add_obex_error(kOBEXSessionNotConnectedError, "SessionNotConnectedError",
+            "session does not have an open connection");
+    add_obex_error(kOBEXSessionBadRequestError, "SessionBadRequestError",
+            "whatever you are trying to do is invalid");
+    add_obex_error(kOBEXSessionBadResponseError, "SessionBadResponseError",
+            "the OBEX Server/client you are talking to has sent us a bad response");
+    add_obex_error(kOBEXSessionNoTransportError, "SessionNoTransportError",
+            "the underlying transport is not open or available");
+    add_obex_error(kOBEXSessionTransportDiedError, "SessionTransportDiedError",
+            "the underlying transport connection died.");
+    add_obex_error(kOBEXSessionTimeoutError, "SessionTimeoutError",
+            "timeout occurred performing an operation");
+    add_obex_error(kOBEXSessionAlreadyConnectedError,
+            "SessionAlreadyConnectedError",
+            "connection over OBEX already established");
 }
 
