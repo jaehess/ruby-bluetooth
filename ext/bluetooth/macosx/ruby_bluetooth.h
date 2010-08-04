@@ -28,6 +28,7 @@ VALUE rbt_device_services(VALUE);
 VALUE rbt_scan(VALUE);
 
 void rbt_obex_session_free(IOBluetoothOBEXSession *);
+VALUE rbt_obex_session_open_transport(VALUE);
 
 VALUE rbt_service_data_element_to_ruby(IOBluetoothSDPDataElement *);
 VALUE rbt_service_data_elements_to_ruby(VALUE, NSArray *);
