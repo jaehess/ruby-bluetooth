@@ -6,11 +6,9 @@ ext/bluetooth/extconf.rb
 ext/bluetooth/macosx/device.m
 ext/bluetooth/macosx/error.m
 ext/bluetooth/macosx/host_controller.m
-ext/bluetooth/maxosx/obex_session.m
 ext/bluetooth/macosx/ruby_bluetooth.h
 ext/bluetooth/macosx/ruby_bluetooth.m
 ext/bluetooth/macosx/scan.m
-ext/bluetooth/maxosx/service.m
 lib/bluetooth.rb
 lib/ruby-bluetooth/device.rb
 lib/ruby-bluetooth/obex_session.rb
