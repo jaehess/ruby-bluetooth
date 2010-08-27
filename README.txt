@@ -1,18 +1,25 @@
 = bluetooth
 
-* http://github.com/yaksnrainbows/ruby-bluetooth
+* http://github.com/jaehess/ruby-bluetooth
 
 == DESCRIPTION:
 
-A bluetooth library for ruby
+An OS X bluetooth library for ruby
 
 == FEATURES/PROBLEMS:
 
-* Only works on OS X
+List coming shortly.
 
-== INSTALL:
+== INSTALL: (Manual for the time being)
 
-  gem install bluetooth
+  git clone git://github.com/jaehess/ruby-bluetooth.git
+
+  cd ruby-bluetooth/ext/bluetooth
+  ruby ./extconf.rb
+  make
+  sudo make install
+
+  Now you can require 'lib/bluetooth', etc
 
 == LICENSE:
 
