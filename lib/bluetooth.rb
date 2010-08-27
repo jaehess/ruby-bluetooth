@@ -1,3 +1,5 @@
+$: << File.join(File.dirname(__FILE__))
+
 module Bluetooth
 
   VERSION = '1.0'
@@ -24,11 +26,10 @@ module Bluetooth
     end
   end
 
-  autoload :Device,      'bluetooth/device'
-  autoload :OBEXSession, 'bluetooth/obex_session'
-  autoload :Service,     'bluetooth/service'
+  autoload :Device,      'ruby-bluetooth/device'
+  autoload :OBEXSession, 'ruby-bluetooth/obex_session'
+  autoload :Service,     'ruby-bluetooth/service'
 
 end
 
-require 'bluetooth/bluetooth'
-
+require 'bluetooth'

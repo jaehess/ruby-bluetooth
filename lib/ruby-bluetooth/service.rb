@@ -158,9 +158,9 @@ class Bluetooth::Service
     "#<%s:0x%x %s - %s>" % [self.class, object_id, name, attrs]
   end
 
-  autoload :Alternative, 'bluetooth/service/alternative'
-  autoload :Sequence,    'bluetooth/service/sequence'
-  autoload :UUID,        'bluetooth/service/uuid'
+  autoload :Alternative, 'ruby-bluetooth/service/alternative'
+  autoload :Sequence,    'ruby-bluetooth/service/sequence'
+  autoload :UUID,        'ruby-bluetooth/service/uuid'
 
 end
 
