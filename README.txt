@@ -19,7 +19,7 @@ List coming shortly.
   make
   sudo make install
 
-  Now you can require 'lib/bluetooth', etc
+  Now you can require 'lib/bluetooth.rb', etc
 
 == LICENSE:
 
