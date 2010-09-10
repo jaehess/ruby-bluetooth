@@ -1,4 +1,5 @@
-require 'bluetooth'
+$: << File.join(File.dirname(__FILE__), '..', 'lib')
+require 'bluetooth.rb'
 
 devices = Bluetooth.scan
 

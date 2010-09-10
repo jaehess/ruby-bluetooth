@@ -1,4 +1,5 @@
-require 'bluetooth'
+$: << File.join(File.dirname(__FILE__), '..', 'lib')
+require 'bluetooth.rb'
 
 address = ARGV.shift || abort("#{$0} address uuid # look up a device with scan.rb")
 uuid = ARGV.shift || abort("#{$0} address uuid # See Bluetooth::Service::SERVICE_CLASSES")
